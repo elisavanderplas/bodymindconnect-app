@@ -10,6 +10,11 @@ import androidx.lifecycle.lifecycleScope
 import com.example.bodymindconnect.database.MoodDatabase
 import com.example.bodymindconnect.model.MoodEntry
 import kotlinx.coroutines.launch
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import android.view.MenuItem
+import android.content.Intent
+import com.example.bodymindconnect.CalendarReader
+import com.example.bodymindconnect.LocationTracker
 
 class MoodSurveyActivity : AppCompatActivity() {
     private lateinit var locationTracker: LocationTracker
@@ -23,6 +28,12 @@ class MoodSurveyActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mood_survey)
+
+        // Add bottom navigation handling
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNav.setOnNavigationItemSelectedListener { item ->
+            handleBottomNavigation(item)
+        }
 
         // Initialize UI components
         horizontalMoodSlider = findViewById(R.id.horizontalMoodSlider)
@@ -82,6 +93,21 @@ class MoodSurveyActivity : AppCompatActivity() {
 
         // Also make the Submit button red
         submitButton.backgroundTintList = android.content.res.ColorStateList.valueOf(redColor)
+    }
+    private fun handleBottomNavigation(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.navigation_home -> {
+                startActivity(Intent(this, MainActivity::class.java))
+                finish()
+                return true
+            }
+            R.id.navigation_mood_survey -> {
+                // Already here, do nothing
+                return true
+            }
+            // Add other menu items as needed
+        }
+        return false
     }
 
     private fun saveMoodWithContext() {
