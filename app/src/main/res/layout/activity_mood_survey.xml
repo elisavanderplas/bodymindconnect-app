@@ -4,19 +4,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/background_black">
     
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="How are you feeling?"
+        android:text="Hoe voel je je?"
         android:textSize="18sp"
         android:layout_marginBottom="24dp"/>
     
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Positive/Negative"
+        android:text="Positief/Negatief"
         android:layout_marginBottom="8dp"/>
     
     <SeekBar
@@ -35,27 +36,27 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Negative"/>
+            android:text="Negatief"/>
             
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Neutral"
+            android:text="Neutraal"
             android:gravity="center"/>
             
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Positive"
+            android:text="Positief"
             android:gravity="end"/>
     </LinearLayout>
     
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Energy Level"
+        android:text="Energie Niveau"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="8dp"/>
     
@@ -75,7 +76,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Low Energy"/>
+            android:text="Lage Energie"/>
             
         <TextView
             android:layout_width="0dp"
@@ -88,7 +89,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="High Energy"
+            android:text="Hoge Energie"
             android:gravity="end"/>
     </LinearLayout>
     
