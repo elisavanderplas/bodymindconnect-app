@@ -31,6 +31,4 @@
         </LinearLayout>
     </ScrollView>
 
-    <include layout="@layout/component_footer" />
-
 </LinearLayout>

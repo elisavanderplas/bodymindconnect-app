@@ -3,23 +3,26 @@
     android:id="@+id/footer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:background="@color/black"
     android:padding="16dp">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/white"
-        android:alpha="0.1" />
+    <!-- Footer image on left -->
+    <ImageView
+        android:id="@+id/footer_image"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/footer"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="Footer image" />
 
+    <!-- Footer text -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="4dp">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="wrap_content"
@@ -32,29 +35,21 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" • "
+            android:text="Health insights, in your hands"
             android:textColor="@color/white"
-            android:textSize="14sp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp" />
+            android:textSize="12sp"
+            android:alpha="0.8"
+            android:layout_marginTop="2dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Health insights, in your hands"
+            android:text="© 2024 Body Mind Connect"
             android:textColor="@color/white"
-            android:textSize="12sp"
-            android:alpha="0.7" />
+            android:textSize="10sp"
+            android:alpha="0.6"
+            android:layout_marginTop="4dp" />
 
     </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="© 2024 Body Mind Connect"
-        android:textColor="@color/white"
-        android:textSize="10sp"
-        android:gravity="center"
-        android:alpha="0.5" />
 
 </LinearLayout>

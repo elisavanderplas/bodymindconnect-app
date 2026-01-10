@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -55,19 +56,76 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Handle navigation from other activities
+        val selectedTab = intent.getStringExtra("SELECTED_TAB")
+        selectedTab?.let {
+            Log.d("MainActivity", "Received SELECTED_TAB: $it")
+            when (it) {
+                "dashboard" -> {
+                    // Navigate to dashboard fragment
+                    val navController = findNavController(R.id.nav_host_fragment_activity_main)
+                    binding.root.post {
+                        navController.navigate(R.id.navigation_dashboard)
+                    }
+                }
+                "notifications" -> {
+                    // Navigate to notifications fragment
+                    val navController = findNavController(R.id.nav_host_fragment_activity_main)
+                    binding.root.post {
+                        navController.navigate(R.id.navigation_notifications)
+                    }
+                }
+            }
+        }
+
         // Set up navigation
         val navView: BottomNavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
 
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
+        // Define which fragments are top-level destinations
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications
+                R.id.navigation_home,
+                R.id.navigation_dashboard,
+                R.id.navigation_notifications
+                // Note: R.id.navigation_mood_survey is NOT included because it's not a fragment
             )
         )
+
+        // Setup ActionBar with navController
         setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+
+        // Setup BottomNavigationView with custom item selection listener
+        // instead of setupWithNavController since we have custom behavior for mood survey
+        navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_mood_survey -> {
+                    // Survey opens MoodSurveyActivity (not a fragment)
+                    val intent = Intent(this, MoodSurveyActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.navigation_home -> {
+                    // Navigate to home fragment
+                    navController.navigate(R.id.navigation_home)
+                    true
+                }
+                R.id.navigation_dashboard -> {
+                    // Navigate to dashboard fragment
+                    navController.navigate(R.id.navigation_dashboard)
+                    true
+                }
+                R.id.navigation_notifications -> {
+                    // Navigate to notifications fragment
+                    navController.navigate(R.id.navigation_notifications)
+                    true
+                }
+                else -> false
+            }
+        }
+
+        // Set initial selection
+        navView.selectedItemId = R.id.navigation_home
 
         // Create notification channel for Android 8.0+
         createNotificationChannel()
@@ -108,7 +166,6 @@ class MainActivity : AppCompatActivity() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == PermissionUtils.PERMISSION_REQUEST_CODE) {
@@ -116,9 +173,17 @@ class MainActivity : AppCompatActivity() {
             val allGranted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
             if (allGranted) {
                 // All permissions granted, you can proceed
+                Log.d("MainActivity", "All permissions granted")
             } else {
                 // Some permissions denied, handle accordingly
+                Log.w("MainActivity", "Some permissions were denied")
             }
         }
+    }
+
+    // Optional: Handle up navigation
+    override fun onSupportNavigateUp(): Boolean {
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }

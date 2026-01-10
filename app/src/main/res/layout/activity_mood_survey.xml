@@ -1,146 +1,232 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_black">
+    android:padding="24dp"
+    android:background="@android:color/white"
+    tools:context=".MoodSurveyActivity">
 
-    <!-- Scrollable content area -->
-    <ScrollView
+    <!-- Title in Dutch -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hoe voel je je vandaag?"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"
+        android:textColor="@android:color/black" />
+
+    <!-- Mood Slider Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Stemming (Links/Rechts)"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="start"
+        android:layout_marginBottom="8dp"
+        android:textColor="@android:color/black" />
+
+    <!-- Mood Value Display -->
+    <TextView
+        android:id="@+id/mood_value_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Huidige Stemming: Neutraal (5)"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"
+        android:textColor="@android:color/black" />
+
+    <!-- Mood Slider (Horizontal) -->
+    <com.google.android.material.slider.Slider
+        android:id="@+id/mood_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:valueFrom="0"
+        android:valueTo="10"
+        android:stepSize="1"
+        android:value="5"
+        app:trackColorActive="@color/red"
+        app:trackColorInactive="@color/light_gray"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Labels for mood slider ends in Dutch -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Zeer Slecht"
+            android:textColor="@color/red"
+            android:textSize="14sp"
+            android:layout_weight="1"
+            android:gravity="start" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Zeer Goed"
+            android:textColor="@color/red"
+            android:textSize="14sp"
+            android:layout_weight="1"
+            android:gravity="end" />
+
+    </LinearLayout>
+
+    <!-- Divider line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@android:color/darker_gray"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Energy Slider Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Energie Niveau (Boven/Onder)"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="start"
+        android:layout_marginBottom="8dp"
+        android:textColor="@android:color/black" />
+
+    <!-- Energy Value Display -->
+    <TextView
+        android:id="@+id/energy_value_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Energie Niveau: Normaal (5)"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"
+        android:textColor="@android:color/black" />
+
+    <!-- Visual representation of vertical line through mood value 5 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/vertical_line_background">
+
+        <!-- Left side label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Hoge\nEnergie"
+            android:textSize="14sp"
+            android:gravity="center|end"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Vertical line container -->
+        <FrameLayout
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="@android:color/black"
+            android:layout_marginHorizontal="8dp">
+
+            <!-- The 5 marker on the vertical line -->
+            <TextView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:text="5"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@android:color/white"
+                android:textColor="@android:color/black"
+                android:layout_gravity="center" />
+
+        </FrameLayout>
+
+        <!-- Right side label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Lage\nEnergie"
+            android:textSize="14sp"
+            android:gravity="center|start"
+            android:textColor="@android:color/black"
+            android:layout_marginStart="16dp" />
+
+    </LinearLayout>
+
+    <!-- Energy Slider (Horizontal slider but represents vertical) -->
+    <com.google.android.material.slider.Slider
+        android:id="@+id/energy_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:valueFrom="0"
+        android:valueTo="10"
+        android:stepSize="1"
+        android:value="5"
+        app:trackColorActive="@color/red"
+        app:trackColorInactive="@color/light_gray"
+        app:thumbColor="@color/red"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Labels for energy slider in Dutch -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="48dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Zeer Hoog"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:layout_weight="1"
+            android:gravity="start" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Zeer Laag"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:layout_weight="1"
+            android:gravity="end" />
+
+    </LinearLayout>
+
+    <!-- Submit Button in Dutch -->
+    <Button
+        android:id="@+id/submit_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Stemming Opslaan"
+        android:textSize="18sp"
+        android:backgroundTint="@color/red"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Spacer to push navigation to bottom -->
+    <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Hoe voel je je?"
-                android:textSize="18sp"
-                android:textColor="@color/white"
-                android:layout_marginBottom="24dp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Positief/Negatief"
-                android:textColor="@color/white"
-                android:layout_marginBottom="8dp"/>
-
-            <SeekBar
-                android:id="@+id/horizontalMoodSlider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="4"
-                android:progress="2"
-                android:progressTint="@color/red"
-                android:progressBackgroundTint="#33F15A5E"
-                android:thumbTint="@color/red"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Negatief"
-                    android:textColor="@color/white"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Neutraal"
-                    android:gravity="center"
-                    android:textColor="@color/white"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Positief"
-                    android:gravity="end"
-                    android:textColor="@color/white"/>
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Energie Niveau"
-                android:textColor="@color/white"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="8dp"/>
-
-            <SeekBar
-                android:id="@+id/verticalMoodSlider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="4"
-                android:progress="2"
-                android:progressTint="@color/red"
-                android:progressBackgroundTint="#33F15A5E"
-                android:thumbTint="@color/red"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Lage Energie"
-                    android:textColor="@color/white"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Medium"
-                    android:gravity="center"
-                    android:textColor="@color/white"/>
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Hoge Energie"
-                    android:gravity="end"
-                    android:textColor="@color/white"/>
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/submitMoodButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Submit"
-                android:layout_marginTop="24dp"
-                android:backgroundTint="@color/red"
-                android:textColor="@color/white"/>
-
-        </LinearLayout>
-    </ScrollView>
+        android:layout_weight="1" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/black"
-        android:elevation="8dp"
-        app:itemIconTint="@drawable/nav_item_color_state"
-        app:itemTextColor="@drawable/nav_item_color_state"
+        android:background="@android:color/white"
         app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>

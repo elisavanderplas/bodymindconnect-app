@@ -1,155 +1,202 @@
 package com.example.bodymindconnect
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
-import android.widget.SeekBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
-import com.example.bodymindconnect.database.MoodDatabase
-import com.example.bodymindconnect.model.MoodEntry
-import kotlinx.coroutines.launch
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import android.view.MenuItem
-import android.content.Intent
-import com.example.bodymindconnect.CalendarReader
-import com.example.bodymindconnect.LocationTracker
+import com.google.android.material.slider.Slider
 
 class MoodSurveyActivity : AppCompatActivity() {
-    private lateinit var locationTracker: LocationTracker
-    private lateinit var moodDatabase: MoodDatabase
 
-    // Add these variables for the UI elements
-    private lateinit var horizontalMoodSlider: SeekBar
-    private lateinit var verticalMoodSlider: SeekBar
+    private lateinit var moodSlider: Slider
+    private lateinit var moodValueText: TextView
     private lateinit var submitButton: Button
+    private lateinit var energyValueText: TextView
+    private lateinit var energySlider: Slider
+    private var currentMoodValue: Float = 5f
+    private var currentEnergyValue: Float = 5f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mood_survey)
 
-        // Add bottom navigation handling
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNav.setOnNavigationItemSelectedListener { item ->
-            handleBottomNavigation(item)
+        // Initialize views
+        moodSlider = findViewById(R.id.mood_slider)
+        moodValueText = findViewById(R.id.mood_value_text)
+        submitButton = findViewById(R.id.submit_button)
+        energyValueText = findViewById(R.id.energy_value_text)
+        energySlider = findViewById(R.id.energy_slider)
+
+        // Setup the mood slider (horizontal)
+        setupMoodSlider()
+
+        // Setup the energy slider (vertical - simulated)
+        setupEnergySlider()
+
+        // Setup submit button
+        setupSubmitButton()
+
+        // Setup bottom navigation
+        setupBottomNavigation()
+
+        Toast.makeText(this, "Stemmingsonderzoek Geladen", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setupMoodSlider() {
+        // Configure the slider with Dutch labels
+        moodSlider.apply {
+            valueFrom = 0f
+            valueTo = 10f
+            stepSize = 1f
+            value = 5f // Default middle value
+
+            // Optional: Custom thumb color
+            // thumbColor = Color.RED
+
+            // Update the text when slider value changes
+            addOnChangeListener { _, value, fromUser ->
+                if (fromUser) {
+                    currentMoodValue = value
+                    updateMoodText(value)
+                }
+            }
+
+            // Also update on slide start
+            addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                override fun onStartTrackingTouch(slider: Slider) {
+                    // Optional: You can add some feedback here
+                }
+
+                override fun onStopTrackingTouch(slider: Slider) {
+                    currentMoodValue = slider.value
+                    updateMoodText(slider.value)
+                }
+            })
         }
 
-        // Initialize UI components
-        horizontalMoodSlider = findViewById(R.id.horizontalMoodSlider)
-        verticalMoodSlider = findViewById(R.id.verticalMoodSlider)
-        submitButton = findViewById(R.id.submitMoodButton)
+        // Set initial text
+        updateMoodText(moodSlider.value)
+    }
 
-        // MAKE SEEKBARS RED
-        makeSeekBarsRed()
+    private fun updateMoodText(value: Float) {
+        val moodText = when (value) {
+            in 0f..2f -> "Zeer Laag ($value)"
+            in 3f..4f -> "Laag ($value)"
+            in 5f..6f -> "Neutraal ($value)"
+            in 7f..8f -> "Goed ($value)"
+            else -> "Uitstekend ($value)"
+        }
+        moodValueText.text = "Huidige Stemming: $moodText"
+    }
 
-        // Initialize other components
-        locationTracker = LocationTracker(this)
-        moodDatabase = MoodDatabase.getInstance(this)
+    private fun setupEnergySlider() {
+        // Configure the energy slider
+        energySlider.apply {
+            valueFrom = 0f
+            valueTo = 10f
+            stepSize = 1f
+            value = 5f // Default middle value
 
-        // Start location tracking
-        locationTracker.startTracking()
+            // Update the text when slider value changes
+            addOnChangeListener { _, value, fromUser ->
+                if (fromUser) {
+                    currentEnergyValue = value
+                    updateEnergyText(value)
+                }
+            }
+        }
 
-        // Set up button click listener
+        // Set initial text
+        updateEnergyText(energySlider.value)
+    }
+
+    private fun updateEnergyText(value: Float) {
+        val energyText = when (value) {
+            in 0f..2f -> "Zeer Laag ($value)"
+            in 3f..4f -> "Laag ($value)"
+            in 5f..6f -> "Normaal ($value)"
+            in 7f..8f -> "Hoog ($value)"
+            else -> "Zeer Hoog ($value)"
+        }
+        energyValueText.text = "Energie Niveau: $energyText"
+    }
+
+    private fun setupSubmitButton() {
         submitButton.setOnClickListener {
-            saveMoodWithContext()
-        }
+            // Save both mood and energy data
+            saveMoodData(currentMoodValue, currentEnergyValue)
 
-        // Optional: Add listeners to see values changing
-        horizontalMoodSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                // You could update a text view showing the value
-                // Example: moodValueText.text = "Mood: $progress"
-            }
+            // Show confirmation in Dutch
+            val confirmationText = "Stemming: $currentMoodValue, Energie: $currentEnergyValue opgeslagen"
+            Toast.makeText(this, confirmationText, Toast.LENGTH_SHORT).show()
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                // Do nothing
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                // Do nothing
-            }
-        })
-    }
-
-    private fun makeSeekBarsRed() {
-        // Get red color from resources
-        val redColor = ContextCompat.getColor(this, R.color.red)
-
-        // Create light red (20% opacity of your red color)
-        // Your red is #F15A5E which is RGB(241, 90, 94)
-        // Light red with 20% opacity: #33F15A5E
-        val lightRedColor = Color.argb(51, 241, 90, 94) // 51 = 20% opacity
-
-        // Apply to horizontal slider
-        horizontalMoodSlider.progressTintList = android.content.res.ColorStateList.valueOf(redColor)
-        horizontalMoodSlider.progressBackgroundTintList = android.content.res.ColorStateList.valueOf(lightRedColor)
-        horizontalMoodSlider.thumbTintList = android.content.res.ColorStateList.valueOf(redColor)
-
-        // Apply to vertical slider
-        verticalMoodSlider.progressTintList = android.content.res.ColorStateList.valueOf(redColor)
-        verticalMoodSlider.progressBackgroundTintList = android.content.res.ColorStateList.valueOf(lightRedColor)
-        verticalMoodSlider.thumbTintList = android.content.res.ColorStateList.valueOf(redColor)
-
-        // Also make the Submit button red
-        submitButton.backgroundTintList = android.content.res.ColorStateList.valueOf(redColor)
-    }
-    private fun handleBottomNavigation(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.navigation_home -> {
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
-                return true
-            }
-            R.id.navigation_mood_survey -> {
-                // Already here, do nothing
-                return true
-            }
-            // Add other menu items as needed
-        }
-        return false
-    }
-
-    private fun saveMoodWithContext() {
-        // Get current values from sliders
-        val horizontalMood = horizontalMoodSlider.progress
-        val verticalMood = verticalMoodSlider.progress
-
-        // Get current location and event
-        val currentLocation = locationTracker.getCurrentLocation()
-        val currentEvent = CalendarReader.getCurrentEvent(this)
-
-        // Create a MoodEntry
-        val moodEntry = MoodEntry(
-            timestamp = System.currentTimeMillis(),
-            horizontalMood = horizontalMood,
-            verticalMood = verticalMood,
-            locationId = currentLocation?.id,
-            calendarEventId = currentEvent?.id
-        )
-
-        // Save to database using coroutines
-        lifecycleScope.launch {
-            moodDatabase.moodDao().insert(moodEntry)
-
-            // Optional: Show confirmation or navigate back
-            runOnUiThread {
-                // Show a toast or message
-                android.widget.Toast.makeText(
-                    this@MoodSurveyActivity,
-                    "Mood saved successfully!",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-
-                // Optional: Reset sliders to middle
-                horizontalMoodSlider.progress = 2
-                verticalMoodSlider.progress = 2
-            }
+            // Navigate back to home
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        locationTracker.stopTracking()
+    private fun saveMoodData(moodValue: Float, energyValue: Float) {
+        // TODO: Implement your data saving logic here
+
+        Log.d("MoodSurvey", "Saving mood value: $moodValue, energy: $energyValue")
+
+        // Example: Save to SharedPreferences
+        val sharedPref = getSharedPreferences("mood_data", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putFloat("last_mood", moodValue)
+            putFloat("last_energy", energyValue)
+            putLong("last_mood_timestamp", System.currentTimeMillis())
+            apply()
+        }
+    }
+
+    private fun setupBottomNavigation() {
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+
+        // Set listener for navigation items
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_home -> {
+                    // Go to MainActivity (Home)
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                    true
+                }
+                R.id.navigation_dashboard -> {
+                    // Go to MainActivity with dashboard selected
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("SELECTED_TAB", "dashboard")
+                    startActivity(intent)
+                    finish()
+                    true
+                }
+                R.id.navigation_mood_survey -> {
+                    // Already on survey page - show message in Dutch
+                    Toast.makeText(this, "Je bent al op de vragenlijst pagina", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                R.id.navigation_notifications -> {
+                    // Go to MainActivity with notifications selected
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("SELECTED_TAB", "notifications")
+                    startActivity(intent)
+                    finish()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        // Highlight the current item (Survey)
+        bottomNav.selectedItemId = R.id.navigation_mood_survey
     }
 }
