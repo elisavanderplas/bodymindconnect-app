@@ -1,16 +1,19 @@
 package com.example.bodymindconnect
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import com.example.bodymindconnect.data.AppDatabase
+import com.example.bodymindconnect.data.MoodEntry
+import com.example.bodymindconnect.data.MoodRepository
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.slider.Slider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MoodSurveyActivity : AppCompatActivity() {
 
@@ -22,9 +25,15 @@ class MoodSurveyActivity : AppCompatActivity() {
     private var currentMoodValue: Float = 5f
     private var currentEnergyValue: Float = 5f
 
+    private lateinit var repository: MoodRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mood_survey)
+
+        // Initialize database repository
+        val database = AppDatabase.getDatabase(this)
+        repository = MoodRepository(database.moodEntryDao())
 
         // Initialize views
         moodSlider = findViewById(R.id.mood_slider)
@@ -33,10 +42,10 @@ class MoodSurveyActivity : AppCompatActivity() {
         energyValueText = findViewById(R.id.energy_value_text)
         energySlider = findViewById(R.id.energy_slider)
 
-        // Setup the mood slider (horizontal)
+        // Setup the mood slider
         setupMoodSlider()
 
-        // Setup the energy slider (vertical - simulated)
+        // Setup the energy slider
         setupEnergySlider()
 
         // Setup submit button
@@ -49,15 +58,12 @@ class MoodSurveyActivity : AppCompatActivity() {
     }
 
     private fun setupMoodSlider() {
-        // Configure the slider with Dutch labels
+        // Configure the mood slider
         moodSlider.apply {
             valueFrom = 0f
             valueTo = 10f
             stepSize = 1f
             value = 5f // Default middle value
-
-            // Optional: Custom thumb color
-            // thumbColor = Color.RED
 
             // Update the text when slider value changes
             addOnChangeListener { _, value, fromUser ->
@@ -110,6 +116,18 @@ class MoodSurveyActivity : AppCompatActivity() {
                     updateEnergyText(value)
                 }
             }
+
+            // Also update on slide start
+            addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                override fun onStartTrackingTouch(slider: Slider) {
+                    // Optional: You can add some feedback here
+                }
+
+                override fun onStopTrackingTouch(slider: Slider) {
+                    currentEnergyValue = slider.value
+                    updateEnergyText(slider.value)
+                }
+            })
         }
 
         // Set initial text
@@ -124,13 +142,13 @@ class MoodSurveyActivity : AppCompatActivity() {
             in 7f..8f -> "Hoog ($value)"
             else -> "Zeer Hoog ($value)"
         }
-        energyValueText.text = "Energie Niveau: $energyText"
+        energyValueText.text = "Huidige Energie: $energyText"
     }
 
     private fun setupSubmitButton() {
         submitButton.setOnClickListener {
-            // Save both mood and energy data
-            saveMoodData(currentMoodValue, currentEnergyValue)
+            // Save both mood and energy data to database
+            saveMoodDataToDatabase(currentMoodValue, currentEnergyValue)
 
             // Show confirmation in Dutch
             val confirmationText = "Stemming: $currentMoodValue, Energie: $currentEnergyValue opgeslagen"
@@ -143,18 +161,27 @@ class MoodSurveyActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveMoodData(moodValue: Float, energyValue: Float) {
-        // TODO: Implement your data saving logic here
+    private fun saveMoodDataToDatabase(moodValue: Float, energyValue: Float) {
+        // Create a new MoodEntry
+        val moodEntry = MoodEntry(
+            moodValue = moodValue,
+            energyValue = energyValue,
+            timestamp = System.currentTimeMillis()
+        )
 
-        Log.d("MoodSurvey", "Saving mood value: $moodValue, energy: $energyValue")
-
-        // Example: Save to SharedPreferences
-        val sharedPref = getSharedPreferences("mood_data", MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putFloat("last_mood", moodValue)
-            putFloat("last_energy", energyValue)
-            putLong("last_mood_timestamp", System.currentTimeMillis())
-            apply()
+        // Save to database using coroutines
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                repository.insert(moodEntry)
+                // Optional: Show success message
+                runOnUiThread {
+                    Toast.makeText(this@MoodSurveyActivity, "Gegevens opgeslagen!", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this@MoodSurveyActivity, "Fout bij opslaan: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
