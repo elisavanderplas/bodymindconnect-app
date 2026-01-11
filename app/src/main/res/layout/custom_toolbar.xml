@@ -3,21 +3,25 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="?attr/actionBarSize"
     android:background="@android:color/white"
-    android:padding="8dp">
+    android:elevation="4dp">
 
-    <!-- Footer text aligned to right -->
+    <!-- App Title at left -->
     <TextView
-        android:id="@+id/footer_text"
+        android:id="@+id/toolbar_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Health insights, in your hands"
-        android:textSize="12sp"
-        android:textColor="@android:color/darker_gray"
+        android:text="Body Mind Connect"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
         android:fontFamily="serif"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingStart="16dp"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Optional: Add other toolbar items here if needed -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
