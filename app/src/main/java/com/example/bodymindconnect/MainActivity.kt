@@ -82,6 +82,9 @@ class MainActivity : AppCompatActivity() {
         val navView: BottomNavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
 
+        navView.setupWithNavController(navController)
+        navView.selectedItemId = R.id.navigation_home
+
         // Define which fragments are top-level destinations
         val appBarConfiguration = AppBarConfiguration(
             setOf(

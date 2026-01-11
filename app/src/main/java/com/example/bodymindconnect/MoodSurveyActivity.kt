@@ -1,19 +1,13 @@
 package com.example.bodymindconnect
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.bodymindconnect.data.AppDatabase
-import com.example.bodymindconnect.data.MoodEntry
-import com.example.bodymindconnect.data.MoodRepository
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.slider.Slider
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MoodSurveyActivity : AppCompatActivity() {
 
@@ -25,15 +19,9 @@ class MoodSurveyActivity : AppCompatActivity() {
     private var currentMoodValue: Float = 5f
     private var currentEnergyValue: Float = 5f
 
-    private lateinit var repository: MoodRepository
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mood_survey)
-
-        // Initialize database repository
-        val database = AppDatabase.getDatabase(this)
-        repository = MoodRepository(database.moodEntryDao())
 
         // Initialize views
         moodSlider = findViewById(R.id.mood_slider)
@@ -50,9 +38,6 @@ class MoodSurveyActivity : AppCompatActivity() {
 
         // Setup submit button
         setupSubmitButton()
-
-        // Setup bottom navigation
-        setupBottomNavigation()
 
         Toast.makeText(this, "Stemmingsonderzoek Geladen", Toast.LENGTH_SHORT).show()
     }
@@ -147,8 +132,8 @@ class MoodSurveyActivity : AppCompatActivity() {
 
     private fun setupSubmitButton() {
         submitButton.setOnClickListener {
-            // Save both mood and energy data to database
-            saveMoodDataToDatabase(currentMoodValue, currentEnergyValue)
+            // Save both mood and energy data
+            saveMoodData(currentMoodValue, currentEnergyValue)
 
             // Show confirmation in Dutch
             val confirmationText = "Stemming: $currentMoodValue, Energie: $currentEnergyValue opgeslagen"
@@ -161,69 +146,27 @@ class MoodSurveyActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveMoodDataToDatabase(moodValue: Float, energyValue: Float) {
-        // Create a new MoodEntry
-        val moodEntry = MoodEntry(
-            moodValue = moodValue,
-            energyValue = energyValue,
-            timestamp = System.currentTimeMillis()
-        )
+    private fun saveMoodData(moodValue: Float, energyValue: Float) {
+        val sharedPref = getSharedPreferences("mood_data", MODE_PRIVATE)
+        val editor = sharedPref.edit()
 
-        // Save to database using coroutines
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                repository.insert(moodEntry)
-                // Optional: Show success message
-                runOnUiThread {
-                    Toast.makeText(this@MoodSurveyActivity, "Gegevens opgeslagen!", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    Toast.makeText(this@MoodSurveyActivity, "Fout bij opslaan: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
+        // Get current entry count
+        val entryCount = sharedPref.getInt("entry_count", 0)
+        val newEntryNumber = entryCount + 1
 
-    private fun setupBottomNavigation() {
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        // Save this entry
+        editor.putFloat("mood_$newEntryNumber", moodValue)
+        editor.putFloat("energy_$newEntryNumber", energyValue)
+        editor.putLong("timestamp_$newEntryNumber", System.currentTimeMillis())
 
-        // Set listener for navigation items
-        bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_home -> {
-                    // Go to MainActivity (Home)
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                R.id.navigation_dashboard -> {
-                    // Go to MainActivity with dashboard selected
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.putExtra("SELECTED_TAB", "dashboard")
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                R.id.navigation_mood_survey -> {
-                    // Already on survey page - show message in Dutch
-                    Toast.makeText(this, "Je bent al op de vragenlijst pagina", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                R.id.navigation_notifications -> {
-                    // Go to MainActivity with notifications selected
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.putExtra("SELECTED_TAB", "notifications")
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-                else -> false
-            }
-        }
+        // Update entry count
+        editor.putInt("entry_count", newEntryNumber)
 
-        // Highlight the current item (Survey)
-        bottomNav.selectedItemId = R.id.navigation_mood_survey
+        // Also save as latest for quick access
+        editor.putFloat("latest_mood", moodValue)
+        editor.putFloat("latest_energy", energyValue)
+        editor.putLong("latest_timestamp", System.currentTimeMillis())
+
+        editor.apply()
     }
 }

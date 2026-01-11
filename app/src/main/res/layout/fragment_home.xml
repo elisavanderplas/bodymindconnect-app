@@ -3,36 +3,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
+    tools:context=".ui.home.HomeFragment"
     android:orientation="vertical"
-    android:background="@color/background_black"
-    tools:context=".ui.home.HomeFragment">
+    android:gravity="center"
+    android:padding="24dp">
 
-    <!-- Content Area (takes all space except footer) -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
+    <TextView
+        android:id="@+id/textHome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Body Mind Connect"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_gravity="center" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Body Mind Connect"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="16dp" />
 
-            <!-- Your existing TextView -->
-            <TextView
-                android:id="@+id/text_home"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:textSize="20sp"
-                android:textColor="@color/black"
-                android:layout_marginBottom="16dp" />
-
-            <!-- You can add more home content here later -->
-
-        </LinearLayout>
-    </ScrollView>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to your mood tracking app"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray"
+        android:gravity="center" />
 
 </LinearLayout>
