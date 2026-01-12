@@ -25,6 +25,7 @@ object PermissionUtils {
     fun checkAndRequestPermissions(activity: Activity): Boolean {
         val permissions = arrayOf(
             Manifest.permission.READ_CALENDAR,
+            Manifest.permission.WRITE_CALENDAR,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
@@ -48,13 +49,19 @@ object PermissionUtils {
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var locationTracker: LocationTracker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inflate the layout using view binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Initialize location tracker
+        locationTracker = LocationTracker(this)
+
+        // Hide the default ActionBar
+        supportActionBar?.hide()
 
         // Handle navigation from other activities
         val selectedTab = intent.getStringExtra("SELECTED_TAB")
@@ -64,6 +71,7 @@ class MainActivity : AppCompatActivity() {
                 "dashboard" -> {
                     // Navigate to dashboard fragment
                     val navController = findNavController(R.id.nav_host_fragment_activity_main)
+                    // Use post to ensure navigation happens after setup
                     binding.root.post {
                         navController.navigate(R.id.navigation_dashboard)
                     }
@@ -82,16 +90,12 @@ class MainActivity : AppCompatActivity() {
         val navView: BottomNavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
 
-        navView.setupWithNavController(navController)
-        navView.selectedItemId = R.id.navigation_home
-
         // Define which fragments are top-level destinations
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.navigation_home,
                 R.id.navigation_dashboard,
                 R.id.navigation_notifications
-                // Note: R.id.navigation_mood_survey is NOT included because it's not a fragment
             )
         )
 
@@ -99,7 +103,6 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         // Setup BottomNavigationView with custom item selection listener
-        // instead of setupWithNavController since we have custom behavior for mood survey
         navView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_mood_survey -> {
@@ -137,7 +140,12 @@ class MainActivity : AppCompatActivity() {
         startMoodSurveyService()
 
         // Check and request permissions
-        PermissionUtils.checkAndRequestPermissions(this)
+        checkAndRequestPermissions()
+
+        // Start location tracking if permission granted
+        if (hasLocationPermission()) {
+            startLocationTracking()
+        }
     }
 
     private fun createNotificationChannel() {
@@ -164,6 +172,57 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.startForegroundService(this, serviceIntent)
     }
 
+    private fun checkAndRequestPermissions() {
+        val permissions = arrayOf(
+            Manifest.permission.READ_CALENDAR,
+            Manifest.permission.WRITE_CALENDAR,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+
+        val permissionsToRequest = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this,
+                permissionsToRequest.toTypedArray(),
+                PermissionUtils.PERMISSION_REQUEST_CODE
+            )
+        } else {
+            Log.d("MainActivity", "All permissions already granted")
+        }
+    }
+
+    private fun hasLocationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun startLocationTracking() {
+        Log.d("MainActivity", "Starting location tracking")
+        locationTracker.startTracking()
+
+        // Check if tracking started successfully
+        if (locationTracker.isTracking()) {
+            Log.i("MainActivity", "Location tracking started successfully")
+        } else {
+            Log.w("MainActivity", "Location tracking failed to start")
+        }
+    }
+
+    private fun stopLocationTracking() {
+        Log.d("MainActivity", "Stopping location tracking")
+        locationTracker.stopTracking()
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -172,16 +231,51 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == PermissionUtils.PERMISSION_REQUEST_CODE) {
-            // Handle permission results
             val allGranted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
             if (allGranted) {
-                // All permissions granted, you can proceed
                 Log.d("MainActivity", "All permissions granted")
+                // Start location tracking now that permission is granted
+                startLocationTracking()
             } else {
-                // Some permissions denied, handle accordingly
                 Log.w("MainActivity", "Some permissions were denied")
+                // Check if location permission was granted
+                permissions.forEachIndexed { index, permission ->
+                    if (permission == Manifest.permission.ACCESS_FINE_LOCATION ||
+                        permission == Manifest.permission.ACCESS_COARSE_LOCATION) {
+                        if (grantResults[index] == PackageManager.PERMISSION_GRANTED) {
+                            Log.d("MainActivity", "Location permission granted")
+                            startLocationTracking()
+                        } else {
+                            Log.w("MainActivity", "Location permission denied")
+                        }
+                    }
+                }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Restart location tracking if app comes to foreground
+        Log.d("MainActivity", "App resumed, checking location tracking")
+        if (hasLocationPermission()) {
+            startLocationTracking()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Optionally stop tracking when app goes to background to save battery
+        // Uncomment if you want to stop tracking in background
+        // stopLocationTracking()
+        Log.d("MainActivity", "App paused")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Stop tracking when app is destroyed
+        stopLocationTracking()
+        Log.d("MainActivity", "App destroyed, location tracking stopped")
     }
 
     // Optional: Handle up navigation

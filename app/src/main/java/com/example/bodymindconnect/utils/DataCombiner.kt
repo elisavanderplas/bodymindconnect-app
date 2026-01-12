@@ -9,6 +9,7 @@ import com.example.bodymindconnect.model.CalendarEvent
 import com.example.bodymindconnect.model.LocationEntry
 import java.text.SimpleDateFormat
 import java.util.*
+import android.util.Log
 
 class DataCombiner(private val context: Context) {
 
@@ -134,8 +135,15 @@ class DataCombiner(private val context: Context) {
 
     private fun getCurrentLocation(): LocationEntry? {
         return try {
-            locationTracker.getCurrentLocation()
+            val location = locationTracker.getCurrentLocation()
+            if (location != null) {
+                Log.d("DataCombiner", "Got location: ${location.latitude}, ${location.longitude}")
+            } else {
+                Log.d("DataCombiner", "No location available")
+            }
+            location
         } catch (e: Exception) {
+            Log.e("DataCombiner", "Error getting location: ${e.message}")
             null
         }
     }
